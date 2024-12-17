@@ -9,3 +9,6 @@ Implemented a GUI using tkinter that acts as a slideshow for each station, allow
 
 yolov4 people-detector model used to filter out images with people present in them to preserve data quality. 
 Can be found here: https://github.com/AlexeyAB/darknet
+
+Web Interface Preview: ![Screenshot 2024-12-03 192615](https://github.com/user-attachments/assets/178d418c-4fa6-4366-a9f6-aaffed53c4cf)
+

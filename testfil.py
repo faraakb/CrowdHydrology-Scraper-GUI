@@ -5,9 +5,10 @@ import re
 import store_tokens
 from twilio.rest import Client
 from PIL import ImageTk, Image
+
 ACCOUNT_SID= store_tokens.get_auth()
 AUTH_TOKEN = store_tokens.get_tok()
-# Initialize the Twilio client
+
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 people_folder = "has_people"
 media_dir = 'messages_with_media'
@@ -18,26 +19,8 @@ if not os.path.exists(people_folder):
 list_of_folders = []
 list_of_folders.append(media_dir)
 cache_of_imagepaths = []
-def clear_folder(folder_path):
-    # Check if the folder exists
-    if not os.path.exists(folder_path):
-        print(f"The folder '{folder_path}' does not exist.")
-        return
 
-    # Iterate over all the files and subdirectories in the folder
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-
-        try:
-            # If it's a file, remove it
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            # If it's a directory, remove it and all its contents
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f"Deletion Unsuccesful")
-def fetch_all_messages_with_media(client, c):
+def fetch_all_messages_with_media(client, c): #read c # of pages from twilio database, messages with media (images) are stored for later use
     all_messages_with_media = []
     page = client.messages.page() #date changed from _created to _sent
     count = 0
@@ -63,7 +46,7 @@ def fetch_all_messages_with_media(client, c):
         count+=1
         print(str(count) + '/' + f"{c}")
     return all_messages_with_media
-def format_label(message):
+def format_label(message): #format timestamp for each message, ex: "2024-12-16 13:27:27 EST" --> "2024-12-16 at 1:27:27 PM"
     t = str(message.date_sent).replace("+00:00", "").split()
     t_copy = str(message.date_sent).replace("+00:00", "").split()
     mdy = t[0]
@@ -78,22 +61,19 @@ def format_label(message):
         reg_time = t_copy[0]
     file_label = mdy + " at " + military_to_regular(reg_time).replace(":", "-")
     return file_label
-def military_to_regular(military_time):
+def military_to_regular(military_time): #convert from military time to regular, ex: "13:27:27" --> "127:27 PM"
     hours, minutes, seconds = map(int, military_time.split(':'))
-    # Determine AM/PM
+
     period = 'AM' if hours < 12 else 'PM'
 
-    # Convert hours to 12-hour format
     regular_hours = hours % 12
     if regular_hours == 0:
         regular_hours = 12
 
-    # Format the regular time
     fin_mins = "0" + str(minutes) if (minutes - 10) < 0 else str(minutes)
     regular_time = str(regular_hours) + ":" + fin_mins + ":" + str(seconds) + " " + period
     return regular_time
-# Function to download media files
-def download_media_files(messages_with_media, media_dir):
+def download_media_files(messages_with_media, media_dir): #store each image to its respective folder if possible, otherwise stored in general folder
     for message in messages_with_media:
         if message['body'] != "":
             media_dir2 = sanitize_dirname(message['body'])
@@ -106,7 +86,7 @@ def download_media_files(messages_with_media, media_dir):
             download_and_write(message, media_dir2)
         else:
             download_and_write(message, media_dir)
-def download_and_write(message, media_dir):
+def download_and_write(message, media_dir): #write contents of respective image to its provided media_dir
     for media in message['media']:
         media_url = media['url']
         media_filename = os.path.join(media_dir, media['filename'])
@@ -116,7 +96,7 @@ def download_and_write(message, media_dir):
             media_file.write(media_response.content)
         print(f"Downloaded {media_filename}")
 
-def sanitize_dirname(dirname, replacement='_'):
+def sanitize_dirname(dirname, replacement='_'): #implementation taken off internet to validate file/dir names
     if os.name == 'nt':  # Windows
         # Windows invalid characters
         invalid_chars = r'<>:"/\\|?*'
@@ -147,7 +127,7 @@ def sanitize_dirname(dirname, replacement='_'):
         dirname = 'default_dir'
 
     return dirname
-def is_valid_filename_or_dirname(name):
+def is_valid_filename_or_dirname(name): #implementation taken off internet to validate file/dir names
     # Check for empty or whitespace-only names
     if not name or name.isspace():
         return False
@@ -159,9 +139,9 @@ def is_valid_filename_or_dirname(name):
     # Define prohibited characters based on platform
     prohibited_chars = r'[<>:"/\\|?*\x00-\x1f]'
     reserved_names = {
-            "CON", "PRN", "AUX", "NUL",
-                *(f"COM{i}" for i in range(1, 10)),
-                *(f"LPT{i}" for i in range(1, 10))
+        "CON", "PRN", "AUX", "NUL",
+        *(f"COM{i}" for i in range(1, 10)),
+        *(f"LPT{i}" for i in range(1, 10))
     }
     # Check if name is a reserved name
     if name.upper() in reserved_names:
@@ -179,6 +159,6 @@ def is_valid_filename_or_dirname(name):
     return True
 
 def main():
-    messages_with_media = fetch_all_messages_with_media(client, 50)
+    messages_with_media = fetch_all_messages_with_media(client, 10) #currently reading 10 pages off database
     download_media_files(messages_with_media, media_dir)
 main()

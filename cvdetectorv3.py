@@ -96,19 +96,21 @@ def clear_folder(folder_path):
 folder_path = 'messages_with_media'
 dir1 = "has_people"
 dir2 = "no_people"
-clear_folder(dir1)
-clear_folder(dir2)
 if not os.path.exists(dir2):
     os.makedirs(dir2)
-restricted = [".idea", ".venv", ".git", "coco.names", "crowd-hydroicon.png", "cvdetectorv3.py", "dropdown2.py", "face_detection.jpg", "test_newdrop.py", "testfil.py", "yolov4.cfg", "yolov4.weights", "__pycache__", "store_tokens.py", "dropdownv4.py", "has_people.zip"]
+restricted = [".idea", ".venv", ".git", "coco.names", "crowd-hydroicon.ico", "cvdetectorv3.py", "dropdown2.py", "face_detection.jpg", "test_newdrop.py", "testfil.py", "yolov4.cfg", "yolov4.weights", "__pycache__", "store_tokens.py", "dropdownv4.py", "has_people.zip", "has_people", "no_people"]
 parent = r"C:\Users\faraz\PycharmProjects\testIDE"
+count = 0
 for folder in os.listdir(parent):
     if folder in restricted or not os.listdir(folder):
         continue
     for filename in os.listdir(folder):
-    # Construct full file path
+        count += 1
         file_path = os.path.join(folder, filename)
         if detect_objects(file_path):
             shutil.copy2(file_path, dir1)
             print("Person detected in this image " + file_path)
+        else:
+            shutil.copy2(file_path, dir2)
+            print("Passed this image " + file_path)
 

@@ -1,16 +1,21 @@
 import os
+import shutil
 import tkinter as tk
 from tkinter import ttk
+import PIL
 from PIL import Image, ImageTk
+
 def create_image_gallery(root, folder):
     image_list = []
     time_stamps = []
-
-    for im_path in os.listdir(folder):
-        fin_path = os.path.join(folder, im_path)
-        time_stamps.append(fin_path.strip(".jpeg"))
-        image = ImageTk.PhotoImage(Image.open(fin_path).resize((950, 650)))
-        image_list.append(image)
+    try:
+        for im_path in os.listdir(folder):
+            fin_path = os.path.join(folder, im_path)
+            time_stamps.append(fin_path.strip(".jpeg"))
+            image = ImageTk.PhotoImage(Image.open(fin_path).resize((950, 650)))
+            image_list.append(image)
+    except PIL.UnidentifiedImageError:
+        print("invalid, couldn't load: " + fin_path)
 
     image1 = image_list[0]
     first_stamp = time_stamps[0]
@@ -55,7 +60,6 @@ def create_image_gallery(root, folder):
         button_forward.config(state=tk.DISABLED)
         button_back.config(state=tk.DISABLED)
 def select_tab(index):
-    """Hides all tab frames and shows the selected one."""
     for tab in notebook_tabs:
         tab.pack_forget()
     notebook_tabs[index].pack(expand=True, fill='both')
@@ -66,9 +70,9 @@ def main():
     root.title("Crowdhydrology Image Gallery")
     root.state('zoomed')
     root.geometry("800x600")
-    root.iconbitmap("crowd-hydroicon.png")
+    root.iconbitmap("crowd-hydroicon.ico")
     folder_list = []
-    restricted = [".idea", ".venv", ".git", "coco.names", "crowd-hydroicon.png", "cvdetectorv3.py", "dropdown2.py", "face_detection.jpg", "test_newdrop.py", "testfil.py", "yolov4.cfg", "yolov4.weights", "__pycache__", "store_tokens.py", "dropdownv4.py", "has_people.zip"]
+    restricted = [".idea", ".venv", ".git", "coco.names", "crowd-hydroicon.ico", "cvdetectorv3.py", "dropdown2.py", "face_detection.jpg", "test_newdrop.py", "testfil.py", "yolov4.cfg", "yolov4.weights", "__pycache__", "store_tokens.py", "dropdownv4.py", "has_people.zip", "has_people", "no_people"]
     parent = r"C:\Users\faraz\PycharmProjects\testIDE"
     for folder in os.listdir(parent):
         if folder in restricted or not os.listdir(folder) or len(folder) > 100:
@@ -77,16 +81,12 @@ def main():
             folder_list.append(folder)
 
     notebook_tabs = []
-
-    # Create a main frame to hold the left menu and the main content area
     main_frame = ttk.Frame(root)
     main_frame.pack(expand=True, fill='both')
 
-    # Create a frame for the scrollable list of tabs on the left side
     left_frame = ttk.Frame(main_frame, width=100)
     left_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-    # Scrollable list of folder names
     tab_list_canvas = tk.Canvas(left_frame)
     tab_list_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -99,11 +99,9 @@ def main():
     tab_list_frame = ttk.Frame(tab_list_canvas)
     tab_list_canvas.create_window((0, 0), window=tab_list_frame, anchor='nw')
 
-    # Create the right frame for displaying the content
     content_frame = ttk.Frame(main_frame)
     content_frame.pack(side=tk.RIGHT, expand=True, fill='both')
 
-    # Create individual frames for each tab content
     for index, folder in enumerate(folder_list):
         tab_frame = ttk.Frame(content_frame)
         notebook_tabs.append(tab_frame)
